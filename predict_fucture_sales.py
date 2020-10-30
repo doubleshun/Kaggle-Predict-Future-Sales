@@ -90,7 +90,7 @@ for idx,row in tqdm(shop_in_all_month.iterrows()):
     
 #(6)增加特徵
 '''
-特徵1:該商品前1,3,6,9,12個月在所有商店的平均銷量
+特徵1:該商品上個月在所有商店的總銷量
 特徵2:該商店上個月的總銷售量
 特徵3:商品上個月在不同商店的平均價格
 特徵4:商品類型
@@ -101,27 +101,6 @@ item_all_sales_lastM.columns = item_all_sales_lastM.columns.droplevel().map(str)
 item_all_sales_lastM.columns.values[0]="item_id"
 item_all_sales_lastM.columns.values[1]="month_id"
 item_all_sales_lastM.columns.values[2]="item_cnt_month"
-Last_Month_List = [1,3,6,9,12]
-
-def sum_itemCNT(item_id,month_id,month_range):
-    sum_itemCNT = 0
-    tmp_item_all_sales_lastM = item_all_sales_lastM[item_all_sales_lastM.item_id == item_id ]
-    for i in range(month_range):
-        sum_itemCNT = sum_itemCNT + int(tmp_item_all_sales_lastM[tmp_item_all_sales_lastM.month_id==month_id-i]['item_cnt_month'])
-    return sum_itemCNT
-
-item_in_all_month = pd.DataFrame(list(itertools.product(item_list,month_list,Last_Month_List)),columns=['item_id','month_id','month_range'])
-item_in_all_month = item_in_all_month.drop(item_in_all_month[item_in_all_month.month_id+1 < item_in_all_month.month_range].index)
-
-tmp_item_cnt = pd.DataFrame()
-for idx,row in tqdm(item_in_all_month.iterrows()):
-    print(str(idx)+' / '+str(len(item_in_all_month)))
-    tmp_item_cnt['item_id'] = row['item_id']
-    tmp_item_cnt['month_id'] = row['month_id']
-    tmp_item_cnt['month_range'] = row['month_range']
-    tmp_item_cnt['item_cnt_last'+str(row['month_range'])+'M'] = sum_itemCNT(row['item_id'],row['month_id'],row['month_range'])
-
-    
 item_all_sales_lastM["month_id"] = item_all_sales_lastM["month_id"] + 1 #加1後，merge才會merge到下個月
 ###特徵2:該商店上個月的總銷售量
 shop_all_sales_lastM = pd.pivot_table(train_table_after, index=['shop_id','month_id'], values=['item_cnt_month'], aggfunc=[np.sum],fill_value=0).reset_index()
